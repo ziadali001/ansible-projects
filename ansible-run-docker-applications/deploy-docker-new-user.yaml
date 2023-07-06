@@ -1,0 +1,58 @@
+---
+- name: Install Docker and Docker-compose
+  hosts: all
+  become: yes
+  # gather_facts: False
+  tasks: 
+    - name: Install Docker
+      ansible.builtin.yum:
+        name: docker
+        update_cache: yes
+        state: present
+        # use_backend: yum
+    - name: Install Docker-compose
+      ansible.builtin.get_url: 
+        url: https://github.com/docker/compose/releases/download/2.19.0/docker-compose-Linux-x86_64'
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Start docker daemon
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+    - name: Install docker python module
+      ansible.builtin.pip:
+        name: 
+          - docker
+          - docker-compose
+
+
+- name: Create new linux user
+  hosts: all
+  become: yes
+  tasks: 
+    - name: Create new linux user
+      ansible.builtin.user:
+        name: ziad
+        groups: adm,docker
+    - name: Reconnect to server session
+      ansible.builtin.meta: reset_connection
+
+
+- name: Start docker containers
+  hosts: all
+  vars_files:
+    - project-vars
+  tasks:
+    - name: Copy docker compose
+      ansible.builtin.copy:
+        src: /home/ziad/projects/java-mysql-app/docker-compose-full.yaml
+        dest: /home/ziad/docker-compose.yaml
+    - name: Docker login
+      community.docker.docker_login: 
+        registry_url: https://index.docker.io/v1/
+        username: ziadmali
+        password: "{{docker_password}}"
+    - name: Start container from compose
+      community.docker.docker_compose: 
+        project_src: /home/ziad
+        state: present

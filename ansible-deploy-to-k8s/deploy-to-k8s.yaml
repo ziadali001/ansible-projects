@@ -1,0 +1,17 @@
+---
+- name: Deploy app in new namespace 
+  hosts : localhost
+  tasks:
+    - name: Creat a k8s namespace
+      community.kubernetes.k8s:
+        name: my-app
+        api_version: v1
+        kind: Namespace
+        state: present
+        kubeconfig: /home/ziad/.minikube
+    - name: Deploy nginx app
+      community.kubernetes.k8s:
+        src: /home/ziad/projects/
+        state: present
+        kubeconfig: /home/ziad/.minikube
+        namespace: my-app

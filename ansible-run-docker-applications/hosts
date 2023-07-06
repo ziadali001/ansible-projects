@@ -1,0 +1,6 @@
+[docker_server]
+54.177.94.204
+
+[docker_server:vars]
+ansible_ssh_private_key_file=/home/ziad/Downloads/test-py.pem
+ansible_user=ec2-user

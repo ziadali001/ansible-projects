@@ -1,0 +1,44 @@
+---
+- name: Install Docker and Docker-compose
+  hosts: aws_ec2
+  become: yes
+  # gather_facts: False
+  tasks: 
+    - name: Install Docker
+      ansible.builtin.yum:
+        name: docker
+        update_cache: yes
+        state: present
+        # use_backend: yum
+    - name: Install Docker-compose
+      ansible.builtin.get_url: 
+        url: https://github.com/docker/compose/releases/download/2.19.0/docker-compose-Linux-x86_64'
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Start docker daemon
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+    - name: Install docker python module
+      ansible.builtin.pip:
+        name: 
+          - docker
+          - docker-compose
+
+
+- name: Create new linux user
+  hosts: aws_ec2
+  become: yes
+  vars:
+    groups: adm,docker
+  roles: 
+    - create_user
+
+
+- name: Start docker containers
+  hosts: aws_ec2
+  vars_files:
+    - project-vars
+  roles:
+    - start_container
+
